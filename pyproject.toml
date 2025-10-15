@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "netsci-toolkit"
+version = "0.1.0"
+description = "A lightweight Network Science toolkit with core analysis functions."
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [{name = "Luca Santagata"}]
+dependencies = [
+  "networkx>=3.0",
+  "numpy>=1.22"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
