@@ -12,22 +12,26 @@ def closeness_centrality_from_scratch(G):
     For each node i: C(i) = (N-1) / sum_j d(i, j) over reachable j.
     Isolated nodes get 0.0.
     """
-    centrality = {}
     N = G.number_of_nodes()
-    for node_i in G.nodes():
-        # Shortest-path tree from node_i
-        lengths = nx.shortest_path_length(G, source=node_i)
-        total_dist = 0
-        count = 0
-        for _, d in lengths:
-            if d > 0:
-                total_dist += d
-                count += 1
-        if total_dist > 0 and N > 1 and count > 0:
-            # standard normalization (ignore unreachable)
-            centrality[node_i] = (count) / total_dist
+    centrality = {}
+
+    for s in G.nodes():
+        # Dizionario: {nodo: distanza}
+        lengths = nx.single_source_shortest_path_length(G, s)
+        # somma delle distanze >0 (esclude self)
+        total_dist = sum(d for v, d in lengths.items() if d > 0)
+        reachable = len(lengths) - 1  # esclude self
+
+        if total_dist > 0 and reachable > 0:
+            base = reachable / total_dist
+            if wf_improved and N > 1:
+                # correzione per grafi disconnessi (come in nx.closeness_centrality default)
+                centrality[s] = (reachable / (N - 1)) * base
+            else:
+                centrality[s] = base
         else:
-            centrality[node_i] = 0.0
+            centrality[s] = 0.0
+
     return centrality
 
 
