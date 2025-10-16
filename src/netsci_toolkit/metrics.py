@@ -288,44 +288,54 @@ def reindex_communities(partition):
 # ---------- 10) LOUVAIN ----------
 def louvain_method(G, init=None, verbose=False):
     """
-    Minimal Louvain implementation:
-    - local moving to improve modularity
-    - network aggregation
-    - repeat until no change in number of communities
-    Returns: dict node -> community_id
+    Louvain con mapping ai nodi ORIGINALI.
+    Ritorna: dict {nodo_originale: community_id 0..K-1}
     """
-    # ensure undirected weighted graph
     H = G.to_undirected().copy()
     if H.number_of_edges() > 0:
         if "weight" not in next(iter(H.edges(data=True)))[-1]:
             nx.set_edge_attributes(H, 1.0, "weight")
 
-    # initial communities
+    # partizione iniziale: ogni nodo è la sua comunità
     if init is None:
         part = {u: i for i, u in enumerate(H.nodes())}
     else:
         part = init.copy()
     nx.set_node_attributes(H, part, "community")
 
-    # initial modularity
+    # mapping super-nodo -> lista nodi ORIGINALI
+    agg2orig = {u: [u] for u in H.nodes()}
+
+    # modularità iniziale
     Qmax = get_modularity(H, part)
-
     N_prev = -1
-    while True:
-        # local optimization
-        Qmax = local_optimization_step(H, Qmax, verbose=verbose)
-        part = nx.get_node_attributes(H, "community")
 
-        # aggregate
+    while True:
+        # 1) local moving
+        Qmax = local_optimization_step(H, Qmax, verbose=verbose)
+        part = nx.get_node_attributes(H, "community")  # node(H) -> comm_id
+
+        # 2) aggiorna mapping agli ORIGINALI in base alla nuova partizione
+        new_agg2orig = defaultdict(list)
+        for old_comm, new_comm in part.items():
+            for orig_node in agg2orig[old_comm]:
+                new_agg2orig[new_comm].append(orig_node)
+        agg2orig = dict(new_agg2orig)
+
+        # 3) aggregazione del grafo
         H = network_aggregation_step(H)
 
-        # number of communities
+        # condizione di arresto: nessun cambiamento nel numero di comunità
         N = H.number_of_nodes()
         if N == N_prev:
             break
         N_prev = N
 
-    # map back: after final agg, node labels == community ids
-    final_part = nx.get_node_attributes(H, "community")
-    # make labels compact
+    # Costruisci la partizione FINALE sui NODI ORIGINALI
+    final_part = {}
+    for comm_id, nodes in agg2orig.items():
+        for u in nodes:
+            final_part[u] = comm_id
+
+    # etichette compatte 0..K-1
     return reindex_communities(final_part)
