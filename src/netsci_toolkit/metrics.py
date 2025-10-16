@@ -6,26 +6,34 @@ from collections import defaultdict
 
 
 # ---------- 1) CLOSENESS (from scratch) ----------
-def closeness_centrality_from_scratch(G):
+def closeness_centrality_from_scratch(G, wf_improved=True):
     """
     Closeness centrality computed from scratch (no nx.closeness_centrality).
+
     For each node i: C(i) = (N-1) / sum_j d(i, j) over reachable j.
     Isolated nodes get 0.0.
+
+    Parameters
+    ----------
+    G : networkx.Graph
+        Input graph
+    wf_improved : bool, optional (default=True)
+        If True, apply Wasserman–Faust correction for disconnected graphs,
+        matching networkx.closeness_centrality(wf_improved=True)
     """
     N = G.number_of_nodes()
     centrality = {}
 
     for s in G.nodes():
-        # Dizionario: {nodo: distanza}
+        # dizionario: {nodo: distanza}
         lengths = nx.single_source_shortest_path_length(G, s)
-        # somma delle distanze >0 (esclude self)
-        total_dist = sum(d for v, d in lengths.items() if d > 0)
+        total_dist = sum(d for d in lengths.values() if d > 0)
         reachable = len(lengths) - 1  # esclude self
 
         if total_dist > 0 and reachable > 0:
             base = reachable / total_dist
             if wf_improved and N > 1:
-                # correzione per grafi disconnessi (come in nx.closeness_centrality default)
+                # correzione per grafi disconnessi (come in nx.closeness_centrality)
                 centrality[s] = (reachable / (N - 1)) * base
             else:
                 centrality[s] = base
