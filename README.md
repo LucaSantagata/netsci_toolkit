@@ -1,4 +1,4 @@
-# 🧠 netsci_toolkit
+# 🤓 netsci_toolkit
 
 This package contains **core algorithms for network analysis**, implemented entirely from scratch and inspired by educational materials from the online textbook **"Network Science" by Brennan Klein** → [https://brennanklein.com/network-science-data-textbook](https://brennanklein.com/network-science-data-textbook).
 
@@ -232,7 +232,7 @@ print(f"Modularity: {Q:.4f}")
 
 ---
 
-## 🔬 Complete Workflow Example
+## 🔍 Complete Workflow Example
 
 Here's a complete example combining multiple functions:
 ```python
